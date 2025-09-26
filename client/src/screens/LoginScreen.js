@@ -1,50 +1,60 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const submitHandler = async (e) => {
     e.preventDefault();
-    console.log("Login with:", email, password);
-    // later: send axios.post("/api/users/login", { email, password })
+    try {
+      const res = await fetch("/api/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        login(data); // save to context & localStorage
+        navigate("/");
+      } else {
+        setError(data.message || "Login failed");
+      }
+    } catch (err) {
+      setError("Something went wrong");
+    }
   };
 
   return (
-    <div style={styles.container}>
+    <div style={{ padding: "1rem" }}>
       <h1>Login</h1>
-      <form onSubmit={handleSubmit} style={styles.form}>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      <form onSubmit={submitHandler}>
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          style={styles.input}
           required
-        />
+        /><br />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={styles.input}
           required
-        />
-        <button type="submit" style={styles.button}>Login</button>
+        /><br />
+        <button type="submit">Login</button>
       </form>
-      <p>
-        New user? <Link to="/register">Register here</Link>
-      </p>
     </div>
   );
-};
-
-const styles = {
-  container: { maxWidth: "400px", margin: "auto", padding: "2rem" },
-  form: { display: "flex", flexDirection: "column", gap: "1rem" },
-  input: { padding: "0.5rem", fontSize: "1rem" },
-  button: { padding: "0.7rem", background: "#333", color: "#fff", border: "none" }
 };
 
 export default LoginScreen;
