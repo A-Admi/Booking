@@ -22,6 +22,7 @@ const registerUser = asyncHandler(async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      isAdmin: user.role === "admin",
       token: generateToken(user._id),
     });
   } else {
@@ -43,6 +44,7 @@ const authUser = asyncHandler(async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      isAdmin: user.role === "admin",
       token: generateToken(user._id),
     });
   } else {
